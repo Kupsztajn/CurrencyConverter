@@ -22,7 +22,7 @@ public interface IEncoding
 // Interface segregation - Document parser abstraction
 public interface IDocument
 {
-    ExchangeRate GetTable(string xmlContent);
+    ExchangeTable Parse(string xmlContent);
 }
 
 // Single Responsibility - REST implementation
@@ -102,81 +102,15 @@ public class ExchangeTable
     }
 }
 
-// Single Responsibility - XML Parser
-public class XML : IDocument
-{
-    public ExchangeRate GetTable(string xmlContent)
-    {
-        try
-        {
-            var doc = XDocument.Parse(xmlContent);
-            var root = doc.Root;
-
-            // Pobierz pierwszą walutę jako reprezentantywną
-            var firstRate = root.Elements("pozycja").FirstOrDefault();
-            
-            if (firstRate == null)
-                throw new Exception("Brak danych walut w XML");
-
-            var rate = new ExchangeRate
-            {
-                Code = firstRate.Element("kod_waluty")?.Value ?? "",
-                Name = firstRate.Element("nazwa_waluty")?.Value ?? "",
-                Role = double.Parse(firstRate.Element("kurs_sredni")?.Value ?? "0".Replace(",", ".")),
-                Vault = double.Parse(firstRate.Element("kurs_sredni")?.Value ?? "0".Replace(",", "."))
-            };
-
-            return rate;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error parsing XML content", ex);
-        }
-    }
-}
-
-// Document Parser - complete implementation
+// Single Responsibility - XML Parser (unified, bez redundacji)
 public class XMLDocument : IDocument
 {
-    public ExchangeRate GetTable(string xmlContent)
+    public ExchangeTable Parse(string xmlContent)
     {
         try
         {
             var doc = XDocument.Parse(xmlContent);
-            var root = doc.Root;
-
-            // Zwracamy pierwszy kurs jako przykład (schema wymaga ExchangeRate)
-            var firstRate = root.Elements("pozycja").FirstOrDefault();
-            
-            if (firstRate == null)
-                throw new Exception("Brak danych walut w XML");
-
-            var rate = new ExchangeRate
-            {
-                Code = firstRate.Element("kod_waluty")?.Value ?? "",
-                Name = firstRate.Element("nazwa_waluty")?.Value ?? "",
-                Role = double.Parse(firstRate.Element("kurs_sredni")?.Value ?? "0".Replace(",", ".")),
-                Vault = double.Parse(firstRate.Element("kurs_sredni")?.Value ?? "0".Replace(",", "."))
-            };
-
-            return rate;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error parsing XML content", ex);
-        }
-    }
-}
-
-// Helper class to parse full exchange table
-public class ExchangeParser
-{
-    public static ExchangeTable ParseXmlToTable(string xmlContent)
-    {
-        try
-        {
-            var doc = XDocument.Parse(xmlContent);
-            var root = doc.Root;
+            var root = doc.Root ?? throw new Exception("Brak root element w XML");
 
             var table = new ExchangeTable
             {
@@ -281,7 +215,7 @@ public class Exchange
     {
         var data = await _repository.Get(_url);
         var xmlContent = _encoding.GetString(data);
-        return ExchangeParser.ParseXmlToTable(xmlContent);
+        return _parser.Parse(xmlContent);
     }
 }
 
@@ -421,7 +355,7 @@ public class MenuManager
         Console.WriteLine("╔════════════════════════════════════════╗");
         Console.WriteLine("║      KURS KONKRETNEJ WALUTY            ║");
         Console.WriteLine("╚════════════════════════════════════════╝\n");
-
+        
         Console.Write("Podaj kod waluty (np. EUR, GBP, USD): ");
         string currencyCode = Console.ReadLine()?.ToUpper() ?? "";
 

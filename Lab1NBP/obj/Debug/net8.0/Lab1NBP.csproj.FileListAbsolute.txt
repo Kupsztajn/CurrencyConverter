@@ -1,0 +1,15 @@
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\bin\Debug\net8.0\Lab1NBP.exe
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\bin\Debug\net8.0\Lab1NBP.deps.json
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\bin\Debug\net8.0\Lab1NBP.runtimeconfig.json
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\bin\Debug\net8.0\Lab1NBP.dll
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\bin\Debug\net8.0\Lab1NBP.pdb
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.AssemblyInfoInputs.cache
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.AssemblyInfo.cs
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.csproj.CoreCompileInputs.cache
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.dll
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\refint\Lab1NBP.dll
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.pdb
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.genruntimeconfig.cache
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\ref\Lab1NBP.dll
+C:\Users\NAWRO\RiderProjects\TO\Lab1NBP\Lab1NBP\obj\Debug\net8.0\Lab1NBP.sourcelink.json
