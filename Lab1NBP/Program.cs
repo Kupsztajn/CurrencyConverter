@@ -141,15 +141,34 @@ public class XMLDocument : IDocument
     }
 }
 
-// Service - Currency Converter
-public class CurrencyConverter
+// Facade - Exchange Service
+public class Exchange
 {
+    private readonly IRemoteRepository _repository;
+    private readonly IEncoding _encoding;
+    private readonly IDocument _parser;
+    private readonly string _url;
     private ExchangeTable _exchangeTable;
     private const string PlnCode = "PLN";
 
-    public CurrencyConverter(ExchangeTable exchangeTable)
+    public Exchange(
+        IRemoteRepository repository,
+        IEncoding encoding,
+        IDocument parser,
+        string url)
     {
-        _exchangeTable = exchangeTable;
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
+        _parser = parser ?? throw new ArgumentNullException(nameof(parser));
+        _url = url ?? throw new ArgumentNullException(nameof(url));
+    }
+
+    public async Task<ExchangeTable> FetchCurrentExchangeRatesAsync()
+    {
+        var data = await _repository.Get(_url);
+        var xmlContent = _encoding.GetString(data);
+        _exchangeTable = _parser.Parse(xmlContent);
+        return _exchangeTable;
     }
 
     public double Convert(string fromCurrency, string toCurrency, double amount)
@@ -191,44 +210,16 @@ public class CurrencyConverter
     }
 }
 
-// Facade - Exchange Service
-public class Exchange
-{
-    private readonly IRemoteRepository _repository;
-    private readonly IEncoding _encoding;
-    private readonly IDocument _parser;
-    private readonly string _url;
-
-    public Exchange(
-        IRemoteRepository repository,
-        IEncoding encoding,
-        IDocument parser,
-        string url)
-    {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
-        _parser = parser ?? throw new ArgumentNullException(nameof(parser));
-        _url = url ?? throw new ArgumentNullException(nameof(url));
-    }
-
-    public async Task<ExchangeTable> FetchCurrentExchangeRatesAsync()
-    {
-        var data = await _repository.Get(_url);
-        var xmlContent = _encoding.GetString(data);
-        return _parser.Parse(xmlContent);
-    }
-}
-
 // UI - Menu Manager
 public class MenuManager
 {
     private ExchangeTable _exchangeTable;
-    private CurrencyConverter _converter;
+    private Exchange _exchange;
 
-    public MenuManager(ExchangeTable exchangeTable)
+    public MenuManager(ExchangeTable exchangeTable, Exchange exchange)
     {
         _exchangeTable = exchangeTable;
-        _converter = new CurrencyConverter(exchangeTable);
+        _exchange = exchange;
     }
 
     public void ShowMainMenu()
@@ -237,15 +228,11 @@ public class MenuManager
         while (running)
         {
             Console.Clear();
-            Console.WriteLine("╔════════════════════════════════════════╗");
-            Console.WriteLine("║     APLIKACJA DO ZAMIANY WALUT NBP     ║");
-            Console.WriteLine("╚════════════════════════════════════════╝\n");
-            Console.WriteLine($"Aktualne kursy z dnia: {_exchangeTable.TimeStamp:yyyy-MM-dd}\n");
+            Console.WriteLine($"Pobrano Kursy\n");
             Console.WriteLine("1. Wyświetl wszystkie kursy walut");
             Console.WriteLine("2. Zamień walutę");
-            Console.WriteLine("3. Sprawdź kurs konkretnej waluty");
-            Console.WriteLine("4. Wyjdź\n");
-            Console.Write("Wybierz opcję (1-4): ");
+            Console.WriteLine("3. Wyjdź\n");
+            Console.Write("Wybierz opcję (1-3): ");
 
             string choice = Console.ReadLine();
 
@@ -258,9 +245,6 @@ public class MenuManager
                     ConvertCurrency();
                     break;
                 case "3":
-                    CheckSingleRate();
-                    break;
-                case "4":
                     running = false;
                     Console.WriteLine("\nDo widzenia!");
                     break;
@@ -275,11 +259,6 @@ public class MenuManager
     private void ShowAllRates()
     {
         Console.Clear();
-        Console.WriteLine("╔════════════════════════════════════════╗");
-        Console.WriteLine("║         WSZYSTKIE KURSY WALUT          ║");
-        Console.WriteLine("╚════════════════════════════════════════╝\n");
-        Console.WriteLine($"Data: {_exchangeTable.TimeStamp:yyyy-MM-dd}");
-        Console.WriteLine($"Tabela nr: {_exchangeTable.Id}\n");
         Console.WriteLine(new string('-', 70));
         Console.WriteLine("{0,-10} {1,-25} {2,15}", "KOD", "NAZWA", "KURS");
         Console.WriteLine(new string('-', 70));
@@ -297,11 +276,6 @@ public class MenuManager
 
     private void ConvertCurrency()
     {
-        Console.Clear();
-        Console.WriteLine("╔════════════════════════════════════════╗");
-        Console.WriteLine("║          ZAMIANA WALUT                 ║");
-        Console.WriteLine("╚════════════════════════════════════════╝\n");
-
         try
         {
             Console.Write("Podaj walutę źródłową (np. EUR, GBP, PLN): ");
@@ -326,7 +300,7 @@ public class MenuManager
                 throw new InvalidOperationException("Niepoprawna kwota");
             }
 
-            double result = _converter.Convert(fromCurrency, toCurrency, amount);
+            double result = _exchange.Convert(fromCurrency, toCurrency, amount);
 
             Console.WriteLine("\n" + new string('=', 50));
             Console.WriteLine($"✓ {amount:F2} {fromCurrency} = {result:F2} {toCurrency}");
@@ -343,35 +317,6 @@ public class MenuManager
         catch (Exception ex)
         {
             Console.WriteLine($"\n✗ Błąd: {ex.Message}");
-        }
-
-        Console.WriteLine("\nNaciśnij Enter aby kontynuować...");
-        Console.ReadLine();
-    }
-
-    private void CheckSingleRate()
-    {
-        Console.Clear();
-        Console.WriteLine("╔════════════════════════════════════════╗");
-        Console.WriteLine("║      KURS KONKRETNEJ WALUTY            ║");
-        Console.WriteLine("╚════════════════════════════════════════╝\n");
-        
-        Console.Write("Podaj kod waluty (np. EUR, GBP, USD): ");
-        string currencyCode = Console.ReadLine()?.ToUpper() ?? "";
-
-        var rate = _exchangeTable.GetRole(currencyCode);
-
-        if (rate != null)
-        {
-            Console.WriteLine("\n" + new string('-', 50));
-            Console.WriteLine($"Kod:      {rate.Code}");
-            Console.WriteLine($"Nazwa:    {rate.Name}");
-            Console.WriteLine($"Kurs:     {rate.Role:F4}");
-            Console.WriteLine(new string('-', 50));
-        }
-        else
-        {
-            Console.WriteLine($"\n✗ Waluta {currencyCode} nie znaleziona w bazie!");
         }
 
         Console.WriteLine("\nNaciśnij Enter aby kontynuować...");
@@ -396,7 +341,7 @@ class Program
             var exchange = new Exchange(repository, encoding, parser, nbpUrl);
             var exchangeTable = await exchange.FetchCurrentExchangeRatesAsync();
 
-            var menu = new MenuManager(exchangeTable);
+            var menu = new MenuManager(exchangeTable, exchange);
             menu.ShowMainMenu();
         }
         catch (Exception ex)
