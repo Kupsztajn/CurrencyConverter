@@ -224,19 +224,15 @@ public class MenuManager
 
     public void ShowMainMenu()
     {
-        bool running = true;
-        while (running)
+        while (true)
         {
             Console.Clear();
-            Console.WriteLine($"Pobrano Kursy\n");
-            Console.WriteLine("1. Wyświetl wszystkie kursy walut");
-            Console.WriteLine("2. Zamień walutę");
-            Console.WriteLine("3. Wyjdź\n");
-            Console.Write("Wybierz opcję (1-3): ");
+            Console.WriteLine("1. Kursy");
+            Console.WriteLine("2. Zamiana");
+            Console.WriteLine("3. Wyjdź");
+            Console.Write("> ");
 
-            string choice = Console.ReadLine();
-
-            switch (choice)
+            switch (Console.ReadLine())
             {
                 case "1":
                     ShowAllRates();
@@ -245,13 +241,7 @@ public class MenuManager
                     ConvertCurrency();
                     break;
                 case "3":
-                    running = false;
-                    Console.WriteLine("\nDo widzenia!");
-                    break;
-                default:
-                    Console.WriteLine("\nNiepoprawna opcja!");
-                    System.Threading.Thread.Sleep(1500);
-                    break;
+                    return;
             }
         }
     }
@@ -259,67 +249,32 @@ public class MenuManager
     private void ShowAllRates()
     {
         Console.Clear();
-        Console.WriteLine(new string('-', 70));
-        Console.WriteLine("{0,-10} {1,-25} {2,15}", "KOD", "NAZWA", "KURS");
-        Console.WriteLine(new string('-', 70));
-
         foreach (var rate in _exchangeTable.Rates.OrderBy(r => r.Code))
-        {
-            Console.WriteLine("{0,-10} {1,-25} {2,15:F4}", rate.Code, rate.Name, rate.Role);
-        }
-
-        Console.WriteLine(new string('-', 70));
-        Console.WriteLine($"Razem walut: {_exchangeTable.Rates.Count}");
-        Console.WriteLine("\nNaciśnij Enter aby kontynuować...");
+            Console.WriteLine($"{rate.Code} {rate.Name} {rate.Role:F4}");
+        Console.WriteLine("\nEnter...");
         Console.ReadLine();
     }
 
     private void ConvertCurrency()
     {
-        try
+        Console.Write("Z: ");
+        string from = Console.ReadLine()?.ToUpper() ?? "";
+        Console.Write("Na: ");
+        string to = Console.ReadLine()?.ToUpper() ?? "";
+        Console.Write("Ile: ");
+        if (double.TryParse(Console.ReadLine(), out double amount))
         {
-            Console.Write("Podaj walutę źródłową (np. EUR, GBP, PLN): ");
-            string fromCurrency = Console.ReadLine()?.ToUpper() ?? "";
-
-            if (string.IsNullOrEmpty(fromCurrency))
+            try
             {
-                throw new InvalidOperationException("Waluta nie może być pusta");
+                double result = _exchange.Convert(from, to, amount);
+                Console.WriteLine($"{amount} {from} = {result:F2} {to}");
             }
-
-            Console.Write("Podaj walutę docelową (np. EUR, GBP, PLN): ");
-            string toCurrency = Console.ReadLine()?.ToUpper() ?? "";
-
-            if (string.IsNullOrEmpty(toCurrency))
+            catch (Exception ex)
             {
-                throw new InvalidOperationException("Waluta nie może być pusta");
+                Console.WriteLine($"Błąd: {ex.Message}");
             }
-
-            Console.Write("Podaj kwotę do zamiany: ");
-            if (!double.TryParse(Console.ReadLine(), out double amount))
-            {
-                throw new InvalidOperationException("Niepoprawna kwota");
-            }
-
-            double result = _exchange.Convert(fromCurrency, toCurrency, amount);
-
-            Console.WriteLine("\n" + new string('=', 50));
-            Console.WriteLine($"✓ {amount:F2} {fromCurrency} = {result:F2} {toCurrency}");
-            Console.WriteLine(new string('=', 50));
-
-            var fromRate = _exchangeTable.GetRole(fromCurrency);
-            var toRate = _exchangeTable.GetRole(toCurrency);
-
-            if (fromRate != null)
-                Console.WriteLine($"Kurs {fromCurrency}: {fromRate.Role:F4}");
-            if (toRate != null)
-                Console.WriteLine($"Kurs {toCurrency}: {toRate.Role:F4}");
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"\n✗ Błąd: {ex.Message}");
-        }
-
-        Console.WriteLine("\nNaciśnij Enter aby kontynuować...");
+        Console.WriteLine("Enter...");
         Console.ReadLine();
     }
 }
