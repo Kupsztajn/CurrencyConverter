@@ -29,8 +29,7 @@ public class XmlDocument : IDocument
                 {
                     Code = pozycja.Element("kod_waluty")?.Value ?? "",
                     Name = pozycja.Element("nazwa_waluty")?.Value ?? "",
-                    Role = double.Parse(pozycja.Element("kurs_sredni")?.Value ?? "0".Replace(",", ".")),
-                    Vault = double.Parse(pozycja.Element("kurs_sredni")?.Value ?? "0".Replace(",", "."))
+                    Role = double.Parse(pozycja.Element("kurs_sredni")?.Value ?? "0".Replace(",", "."))
                 };
                 table.Rates.Add(rate);
             }
