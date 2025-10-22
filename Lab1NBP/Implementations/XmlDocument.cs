@@ -6,7 +6,7 @@ using System.Xml.Linq;
 using Lab1NBP.Interfaces;
 using Lab1NBP.Models;
 
-public class XMLDocument : IDocument
+public class XmlDocument : IDocument
 {
     public ExchangeTable Parse(string xmlContent)
     {

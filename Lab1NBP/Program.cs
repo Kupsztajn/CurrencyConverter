@@ -16,8 +16,8 @@ class Program
 
             var nbpUrl = "https://static.nbp.pl/dane/kursy/xml/lastA.xml";
             var repository = new Rest();
-            var encoding = new ISO();
-            var parser = new XMLDocument();
+            var encoding = new Iso();
+            var parser = new XmlDocument();
 
             var exchange = new Exchange(repository, encoding, parser, nbpUrl);
             var exchangeTable = await exchange.FetchCurrentExchangeRatesAsync();
