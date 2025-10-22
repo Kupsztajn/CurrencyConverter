@@ -2,7 +2,7 @@ namespace Lab1NBP.Implementations;
 
 using Lab1NBP.Interfaces;
 
-public class ISO : IEncoding
+public class Iso : IEncoding
 {
     public string GetString(byte[] data)
     {
